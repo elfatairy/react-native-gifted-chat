@@ -15,7 +15,6 @@ import {
 import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
 import {
-  FlatList,
   Platform,
   StyleProp,
   StyleSheet,
@@ -68,7 +67,7 @@ dayjs.extend(localizedFormat)
 
 export interface GiftedChatProps<TMessage extends IMessage = IMessage> {
   /* Message container ref */
-  messageContainerRef?: React.RefObject<FlatList<IMessage>>
+  messageContainerRef?: React.RefObject<Animated.FlatList<IMessage>>
   /* text input ref */
   textInputRef?: React.RefObject<TextInput>
   /* Messages to display */
@@ -147,7 +146,7 @@ export interface GiftedChatProps<TMessage extends IMessage = IMessage> {
   actionSheet?(): {
     showActionSheetWithOptions: (
       options: ActionSheetOptions,
-      callback: (buttonIndex: number) => void | Promise<void>,
+      callback: (buttonIndex: number) => void | Promise<void>
     ) => void
   }
   /* Callback when a message avatar is tapped */
@@ -214,17 +213,23 @@ export interface GiftedChatProps<TMessage extends IMessage = IMessage> {
   /* Callback when the input text changes */
   onInputTextChanged?(text: string): void
   /* Custom parse patterns for react-native-parsed-text used to linking message content (like URLs and phone numbers) */
-  parsePatterns?: (linkStyle?: TextStyle) => { type?: string, pattern?: RegExp, style?: StyleProp<TextStyle> | object, onPress?: unknown, renderText?: unknown }[]
+  parsePatterns?: (linkStyle?: TextStyle) => {
+    type?: string
+    pattern?: RegExp
+    style?: StyleProp<TextStyle> | object
+    onPress?: unknown
+    renderText?: unknown
+  }[]
   onQuickReply?(replies: Reply[]): void
   renderQuickReplies?(
-    quickReplies: QuickRepliesProps<TMessage>,
+    quickReplies: QuickRepliesProps<TMessage>
   ): React.ReactNode
   renderQuickReplySend?(): React.ReactNode
   /* Scroll to bottom custom component */
   scrollToBottomComponent?(): React.ReactNode
   shouldUpdateMessage?(
     props: Message<TMessage>['props'],
-    nextProps: Message<TMessage>['props'],
+    nextProps: Message<TMessage>['props']
   ): boolean
 }
 
@@ -259,7 +264,7 @@ function GiftedChat<TMessage extends IMessage = IMessage> (
   const actionSheetRef = useRef<ActionSheetProviderRef>(null)
 
   const messageContainerRef = useMemo(
-    () => props.messageContainerRef || createRef<FlatList<IMessage>>(),
+    () => props.messageContainerRef || createRef<Animated.FlatList<IMessage>>(),
     [props.messageContainerRef]
   )
 

@@ -2,7 +2,6 @@ import React, { RefObject } from 'react'
 import PropTypes from 'prop-types'
 
 import {
-  FlatList,
   View,
   StyleSheet,
   TouchableOpacity,
@@ -14,6 +13,8 @@ import {
   ViewStyle,
   Platform,
 } from 'react-native'
+
+import Animated, { LinearTransition } from 'react-native-reanimated'
 
 import { LoadEarlier, LoadEarlierProps } from './LoadEarlier'
 import Message from './Message'
@@ -78,7 +79,7 @@ export interface MessageContainerProps<TMessage extends IMessage> {
   invertibleScrollViewProps?: object
   extraData?: object
   scrollToBottomOffset?: number
-  forwardRef?: RefObject<FlatList<TMessage>>
+  forwardRef?: RefObject<Animated.FlatList<TMessage>>
   renderChatEmpty?(): React.ReactNode
   renderFooter?(props: MessageContainerProps<TMessage>): React.ReactNode
   renderMessage?(props: Message['props']): React.ReactElement
@@ -96,7 +97,7 @@ interface State {
 }
 
 export default class MessageContainer<
-  TMessage extends IMessage = IMessage,
+  TMessage extends IMessage = IMessage
 > extends React.PureComponent<MessageContainerProps<TMessage>, State> {
   static defaultProps = {
     messages: [],
@@ -210,7 +211,10 @@ export default class MessageContainer<
       this.setState({ showScrollBottom: false, hasScrolled: true })
   }
 
-  renderRow = ({ item, index }: ListRenderItemInfo<TMessage>): React.ReactElement | null => {
+  renderRow = ({
+    item,
+    index,
+  }: ListRenderItemInfo<TMessage>): React.ReactElement | null => {
     if (!item._id && item._id !== 0)
       warning('GiftedChat: `_id` is missing for message', JSON.stringify(item))
 
@@ -328,7 +332,7 @@ export default class MessageContainer<
           this.props.alignTop ? styles.containerAlignTop : styles.container
         }
       >
-        <FlatList
+        <Animated.FlatList
           ref={this.props.forwardRef}
           extraData={[this.props.extraData, this.props.isTyping]}
           keyExtractor={this.keyExtractor}
@@ -347,9 +351,10 @@ export default class MessageContainer<
             inverted ? this.renderFooter : this.renderHeaderWrapper
           }
           onScroll={this.handleOnScroll}
-          scrollEventThrottle={100}
+          scrollEventThrottle={1000 / 60}
           onLayout={this.onLayoutList}
           onEndReached={this.onEndReached}
+          itemLayoutAnimation={LinearTransition.duration(250)}
           onEndReachedThreshold={0.1}
           {...this.props.listViewProps}
         />

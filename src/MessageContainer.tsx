@@ -14,7 +14,12 @@ import {
   Platform,
 } from 'react-native'
 
-import Animated, { LinearTransition } from 'react-native-reanimated'
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+  ZoomIn,
+} from 'react-native-reanimated'
 
 import { LoadEarlier, LoadEarlierProps } from './LoadEarlier'
 import Message from './Message'
@@ -94,6 +99,7 @@ export interface MessageContainerProps<TMessage extends IMessage> {
 interface State {
   showScrollBottom: boolean
   hasScrolled: boolean
+  initialRender: boolean
 }
 
 export default class MessageContainer<
@@ -146,6 +152,14 @@ export default class MessageContainer<
   state = {
     showScrollBottom: false,
     hasScrolled: false,
+    initialRender: true,
+  }
+
+  componentDidMount () {
+    // Set initialRender to false after first render
+    requestAnimationFrame(() => {
+      this.setState({ initialRender: false })
+    })
   }
 
   renderTypingIndicator = () => {
@@ -247,7 +261,20 @@ export default class MessageContainer<
       if (this.props.renderMessage)
         return this.props.renderMessage(messageProps)
 
-      return <Message key={item._id.toString()} {...messageProps} />
+      const entering = ZoomIn.duration(400)
+      const isLatestMessage = !inverted
+        ? index === messages.length - 1
+        : index === 0
+
+      return (
+        <Animated.View
+          entering={
+            !this.state.initialRender && isLatestMessage ? entering : undefined
+          }
+        >
+          <Message key={item._id.toString()} {...messageProps} />
+        </Animated.View>
+      )
     }
     return null
   }
@@ -354,7 +381,9 @@ export default class MessageContainer<
           scrollEventThrottle={1000 / 60}
           onLayout={this.onLayoutList}
           onEndReached={this.onEndReached}
-          itemLayoutAnimation={LinearTransition.duration(250)}
+          entering={FadeIn.duration(250)}
+          exiting={FadeOut.duration(250)}
+          itemLayoutAnimation={LinearTransition.duration(400)}
           onEndReachedThreshold={0.1}
           {...this.props.listViewProps}
         />

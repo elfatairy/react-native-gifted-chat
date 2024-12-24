@@ -1,10 +1,10 @@
-import React, { RefObject } from 'react';
-import PropTypes from 'prop-types';
-import { ListRenderItemInfo, NativeSyntheticEvent, NativeScrollEvent, StyleProp, ViewStyle } from 'react-native';
-import Animated from 'react-native-reanimated';
-import { LoadEarlierProps } from './LoadEarlier';
-import Message from './Message';
-import { User, IMessage, Reply } from './Models';
+import React, { RefObject } from "react";
+import PropTypes from "prop-types";
+import { ListRenderItemInfo, NativeSyntheticEvent, NativeScrollEvent, StyleProp, ViewStyle } from "react-native";
+import Animated, { EntryExitAnimationFunction } from "react-native-reanimated";
+import { LoadEarlierProps } from "./LoadEarlier";
+import Message from "./Message";
+import { User, IMessage, Reply } from "./Models";
 export interface MessageContainerProps<TMessage extends IMessage> {
     messages?: TMessage[];
     isTyping?: boolean;
@@ -21,18 +21,18 @@ export interface MessageContainerProps<TMessage extends IMessage> {
     forwardRef?: RefObject<Animated.FlatList<TMessage>>;
     renderChatEmpty?(): React.ReactNode;
     renderFooter?(props: MessageContainerProps<TMessage>): React.ReactNode;
-    renderMessage?(props: Message['props']): React.ReactElement;
+    renderMessage?(props: Message["props"]): React.ReactElement;
     renderLoadEarlier?(props: LoadEarlierProps): React.ReactNode;
     scrollToBottomComponent?(): React.ReactNode;
     onLoadEarlier?(): void;
     onQuickReply?(replies: Reply[]): void;
     infiniteScroll?: boolean;
     isLoadingEarlier?: boolean;
+    messageAnimation?: EntryExitAnimationFunction;
 }
 interface State {
     showScrollBottom: boolean;
     hasScrolled: boolean;
-    initialRender: boolean;
 }
 export default class MessageContainer<TMessage extends IMessage = IMessage> extends React.PureComponent<MessageContainerProps<TMessage>, State> {
     static defaultProps: {
@@ -55,6 +55,7 @@ export default class MessageContainer<TMessage extends IMessage = IMessage> exte
         scrollToBottomStyle: {};
         infiniteScroll: boolean;
         isLoadingEarlier: boolean;
+        messageAnimation: undefined;
     };
     static propTypes: {
         messages: PropTypes.Requireable<(object | null | undefined)[]>;
@@ -76,13 +77,12 @@ export default class MessageContainer<TMessage extends IMessage = IMessage> exte
         alignTop: PropTypes.Requireable<boolean>;
         scrollToBottomStyle: PropTypes.Requireable<NonNullable<number | boolean | object | null | undefined>>;
         infiniteScroll: PropTypes.Requireable<boolean>;
+        messageAnimation: PropTypes.Requireable<any>;
     };
     state: {
         showScrollBottom: boolean;
         hasScrolled: boolean;
-        initialRender: boolean;
     };
-    componentDidMount(): void;
     renderTypingIndicator: () => React.JSX.Element | null;
     renderFooter: () => string | number | boolean | Iterable<React.ReactNode> | React.JSX.Element | null | undefined;
     renderLoadEarlier: () => string | number | boolean | Iterable<React.ReactNode> | React.JSX.Element | null | undefined;

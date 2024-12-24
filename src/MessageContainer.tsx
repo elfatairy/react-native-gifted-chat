@@ -17,8 +17,7 @@ import {
 import Animated, {
   FadeIn,
   FadeOut,
-  LinearTransition,
-  ZoomIn,
+  EntryExitAnimationFunction,
 } from 'react-native-reanimated'
 
 import { LoadEarlier, LoadEarlierProps } from './LoadEarlier'
@@ -94,12 +93,12 @@ export interface MessageContainerProps<TMessage extends IMessage> {
   onQuickReply?(replies: Reply[]): void
   infiniteScroll?: boolean
   isLoadingEarlier?: boolean
+  messageAnimation?: EntryExitAnimationFunction
 }
 
 interface State {
   showScrollBottom: boolean
   hasScrolled: boolean
-  initialRender: boolean
 }
 
 export default class MessageContainer<
@@ -125,6 +124,7 @@ export default class MessageContainer<
     scrollToBottomStyle: {},
     infiniteScroll: false,
     isLoadingEarlier: false,
+    messageAnimation: undefined,
   }
 
   static propTypes = {
@@ -147,19 +147,12 @@ export default class MessageContainer<
     alignTop: PropTypes.bool,
     scrollToBottomStyle: StylePropType,
     infiniteScroll: PropTypes.bool,
+    messageAnimation: PropTypes.any,
   }
 
   state = {
     showScrollBottom: false,
     hasScrolled: false,
-    initialRender: true,
-  }
-
-  componentDidMount () {
-    // Set initialRender to false after first render
-    requestAnimationFrame(() => {
-      this.setState({ initialRender: false })
-    })
   }
 
   renderTypingIndicator = () => {
@@ -241,7 +234,8 @@ export default class MessageContainer<
 
       item.user = { _id: 0 }
     }
-    const { messages, user, inverted, ...restProps } = this.props
+    const { messages, user, inverted, messageAnimation, ...restProps } =
+      this.props
     if (messages && user) {
       const previousMessage =
         (inverted ? messages[index + 1] : messages[index - 1]) || {}
@@ -261,17 +255,8 @@ export default class MessageContainer<
       if (this.props.renderMessage)
         return this.props.renderMessage(messageProps)
 
-      const entering = ZoomIn.duration(400)
-      const isLatestMessage = !inverted
-        ? index === messages.length - 1
-        : index === 0
-
       return (
-        <Animated.View
-          entering={
-            !this.state.initialRender && isLatestMessage ? entering : undefined
-          }
-        >
+        <Animated.View entering={messageAnimation}>
           <Message key={item._id.toString()} {...messageProps} />
         </Animated.View>
       )
@@ -383,7 +368,7 @@ export default class MessageContainer<
           onEndReached={this.onEndReached}
           entering={FadeIn.duration(250)}
           exiting={FadeOut.duration(250)}
-          itemLayoutAnimation={LinearTransition.duration(400)}
+          // itemLayoutAnimation={LinearTransition.duration(400)}
           onEndReachedThreshold={0.1}
           {...this.props.listViewProps}
         />
